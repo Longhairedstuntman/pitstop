@@ -31,5 +31,9 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="HELPDESK_INBOUND_ADDRESS" value="helpdesk@mwmotor.com"/>
+        <env name="HELPDESK_INBOUND_SECRET" value="test-inbound-secret"/>
+        <env name="HELPDESK_SUBJECT_PREFIX" value="PS"/>
+        <env name="OPS_NOTIFY_EMAIL" value="ops@mwmotor.com"/>
     </php>
 </phpunit>

@@ -88,6 +88,9 @@
                     <span class="ticket-pill">{{ $ticket->status }}</span>
                     <span class="ticket-pill">{{ $ticket->priority }}</span>
                     <span class="ticket-pill">{{ $ticket->category }}</span>
+                    @if($ticket->source === \App\Models\Ticket::SOURCE_EMAIL)
+                        <span class="ticket-pill" title="Opened from an email to the help desk address">✉ via email</span>
+                    @endif
                 </div>
             </div>
 
@@ -108,6 +111,8 @@
 
                     <h2 class="ticket-section-title">Description</h2>
                     <div class="ticket-body">{{ $ticket->description }}</div>
+
+                    <x-attachment-list :attachments="$ticket->attachments" />
                 </div>
             </section>
 
@@ -157,11 +162,16 @@
                                     @if($reply->author_email)
                                         <span>{{ $reply->author_email }}</span>
                                     @endif
+                                    @if($reply->cameFromEmail())
+                                        <span class="ticket-pill" title="Received by email">✉</span>
+                                    @endif
                                 </div>
                                 <div>{{ $reply->created_at->format('Y-m-d g:i A') }}</div>
                             </div>
 
                             <div class="reply-body">{{ $reply->message }}</div>
+
+                            <x-attachment-list :attachments="$reply->attachments" />
                         </div>
                     @empty
                         <div class="ticket-sub" style="margin-top: 10px;">No replies yet.</div>
@@ -173,6 +183,11 @@
         <section class="card" aria-label="Post a reply" style="margin-top: 14px;">
             <div style="padding: 16px 18px;">
                 <h2 class="ticket-section-title">Post a Reply</h2>
+
+                <div class="ticket-sub" style="margin-bottom: 10px; font-size: 12px;">
+                    This emails {{ $ticket->requester_email }} from the help desk address.
+                    Their reply comes straight back onto this request.
+                </div>
 
                 <form method="POST" action="{{ route('ops.tickets.reply', $ticket) }}" enctype="multipart/form-data">
                     @csrf

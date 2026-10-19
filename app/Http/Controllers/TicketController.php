@@ -6,6 +6,8 @@ use App\Mail\NewTicketSubmitted;
 use App\Mail\TicketReplied;
 use App\Models\Ticket;
 use App\Models\TicketView;
+use App\Services\Helpdesk\OutboundTicketMailer;
+use App\Services\Helpdesk\TicketAttachmentStore;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
@@ -38,33 +40,15 @@ class TicketController extends Controller
             'status' => 'Open',
         ]);
 
-        // Store optional attachments (screenshots, PDFs, etc.)
-        // NOTE: This stores files on disk, but does not persist metadata in the DB yet.
-        // If you want these viewable/downloadable on the ticket page, we can add a
-        // `ticket_attachments` table + relationship next.
-        $storedAttachments = [];
+        // Attachments go to a private disk and are recorded in the database,
+        // so they're downloadable from the ticket page and not readable by
+        // anyone who guesses a storage URL.
         if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                if (! $file || ! $file->isValid()) {
-                    continue;
-                }
-
-                // Store under: storage/app/public/tickets/{ticketId}/...
-                $path = $file->store("tickets/{$ticket->id}", 'public');
-                $storedAttachments[] = [
-                    'path' => $path,
-                    'original_name' => $file->getClientOriginalName(),
-                    'mime_type' => $file->getClientMimeType(),
-                    'size' => $file->getSize(),
-                ];
-            }
-
-            if (! empty($storedAttachments)) {
-                Log::info('Ticket attachments stored', [
-                    'ticket_id' => $ticket->id,
-                    'attachments' => $storedAttachments,
-                ]);
-            }
+            app(TicketAttachmentStore::class)->storeUploads(
+                $request->file('attachments'),
+                $ticket,
+                $ticket
+            );
         }
 
         $opsEmail = env('OPS_NOTIFY_EMAIL');
@@ -116,34 +100,18 @@ class TicketController extends Controller
             'message' => $validated['message'],
         ]);
 
-        // Store optional attachments for this reply
-        $storedAttachments = [];
+        // Attachments on the reply itself, stored privately and recorded.
         if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                if (! $file || ! $file->isValid()) {
-                    continue;
-                }
-
-                // Store under: storage/app/public/tickets/{ticketId}/replies/{replyId}/...
-                $path = $file->store("tickets/{$ticket->id}/replies/{$reply->id}", 'public');
-                $storedAttachments[] = [
-                    'path' => $path,
-                    'original_name' => $file->getClientOriginalName(),
-                    'mime_type' => $file->getClientMimeType(),
-                    'size' => $file->getSize(),
-                ];
-            }
-
-            if (! empty($storedAttachments)) {
-                Log::info('Ticket reply attachments stored', [
-                    'ticket_id' => $ticket->id,
-                    'reply_id' => $reply->id,
-                    'attachments' => $storedAttachments,
-                ]);
-            }
+            app(TicketAttachmentStore::class)->storeUploads(
+                $request->file('attachments'),
+                $ticket,
+                $reply
+            );
         }
-
-        Mail::to($ticket->requester_email)->send(new TicketReplied($ticket, $reply, 'requester'));
+        // Sent through the mailer rather than Mail::send directly so the
+        // outbound Message-ID is recorded and the requester's reply threads
+        // back onto this ticket instead of opening a new one.
+        app(OutboundTicketMailer::class)->sendReplyToRequester($ticket, $reply);
 
         if ($ticket->status === 'Open') {
             $ticket->update(['status' => 'In Progress']);
@@ -197,7 +165,9 @@ class TicketController extends Controller
 
     public function opsShow(Ticket $ticket)
     {
-        $ticket->load('replies');
+        // Eager-load attachments on both the ticket and every reply so the
+        // attachment lists don't fire a query per reply.
+        $ticket->load(['replies.attachments', 'attachments']);
         $user = auth()->user();
         if ($user) {
             TicketView::updateOrCreate(

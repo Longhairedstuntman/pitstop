@@ -107,6 +107,8 @@
 
                 <h2 class="ticket-section-title">Description</h2>
                 <div class="ticket-body">{{ $ticket->description }}</div>
+
+                <x-attachment-list :attachments="$ticket->attachments" />
             </div>
         </section>
 
@@ -127,6 +129,8 @@
                             </div>
 
                             <div class="reply-body">{{ $reply->message }}</div>
+
+                            <x-attachment-list :attachments="$reply->attachments" />
                         </div>
                     @empty
                         <div class="ticket-sub" style="margin-top: 10px;">No replies yet.</div>
