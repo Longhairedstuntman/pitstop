@@ -21,7 +21,7 @@
         "concurrently": "^9.0.1",
         "eslint": "^8.57.1",
         "eslint-config-prettier": "^9.1.0",
-        "laravel-vite-plugin": "^2.0.0",
+        "laravel-vite-plugin": "^3.2.0",
         "markdownlint-cli2": "^0.18.1",
         "postcss": "^8.4.31",
         "prettier": "^3.5.3",
