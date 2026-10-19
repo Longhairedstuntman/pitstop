@@ -51,7 +51,7 @@ class MyTicketsController extends Controller
 
         // Ops can view any ticket
         if (method_exists($user, 'isOps') && $user->isOps()) {
-            $ticket->load('replies');
+            $ticket->load(['replies.attachments', 'attachments']);
             TicketView::updateOrCreate(
                 ['user_id' => $user->id, 'ticket_id' => $ticket->id],
                 ['last_viewed_at' => now()]
@@ -62,7 +62,7 @@ class MyTicketsController extends Controller
         // Non-ops can only view their own tickets
         abort_if($ticket->requester_email !== $user->email, 403);
 
-        $ticket->load('replies');
+        $ticket->load(['replies.attachments', 'attachments']);
         TicketView::updateOrCreate(
             ['user_id' => $user->id, 'ticket_id' => $ticket->id],
             ['last_viewed_at' => now()]
