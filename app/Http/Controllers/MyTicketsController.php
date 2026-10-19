@@ -93,7 +93,7 @@ class MyTicketsController extends Controller
             'message' => $validated['message'],
         ]);
 
-        $opsEmail = env('OPS_NOTIFY_EMAIL');
+        $opsEmail = config('helpdesk.ops_notify_email');
         if ($opsEmail) {
             Mail::to($opsEmail)->send(new TicketReplied($ticket, $reply, 'ops'));
         }

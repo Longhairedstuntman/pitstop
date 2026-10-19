@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -18,6 +19,19 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Railway (and any other platform fronting the app with a proxy)
+        // terminates TLS at the edge and forwards plain HTTP inward. Without
+        // trusting those headers Laravel generates http:// URLs, secure
+        // cookies are never set, and the signed-URL / redirect flows break.
+        $middleware->trustProxies(
+            at: '*',
+            headers: Request::HEADER_X_FORWARDED_FOR
+                | Request::HEADER_X_FORWARDED_HOST
+                | Request::HEADER_X_FORWARDED_PORT
+                | Request::HEADER_X_FORWARDED_PROTO
+                | Request::HEADER_X_FORWARDED_AWS_ELB,
+        );
+
         $middleware->alias([
             'ops' => \App\Http\Middleware\EnsureOps::class,
             'admin' => \App\Http\Middleware\EnsureAdmin::class,

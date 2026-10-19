@@ -51,7 +51,7 @@ class TicketController extends Controller
             );
         }
 
-        $opsEmail = env('OPS_NOTIFY_EMAIL');
+        $opsEmail = config('helpdesk.ops_notify_email');
         if ($opsEmail) {
             Mail::to($opsEmail)->send(new NewTicketSubmitted($ticket));
         }

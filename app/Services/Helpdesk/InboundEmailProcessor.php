@@ -350,7 +350,7 @@ class InboundEmailProcessor
 
     protected function notifyOpsOfNewTicket(Ticket $ticket): void
     {
-        $opsEmail = config('helpdesk.ops_notify_email') ?: env('OPS_NOTIFY_EMAIL');
+        $opsEmail = config('helpdesk.ops_notify_email');
 
         if (blank($opsEmail)) {
             return;
@@ -368,7 +368,7 @@ class InboundEmailProcessor
 
     protected function notifyOpsOfReply(Ticket $ticket, TicketReply $reply): void
     {
-        $opsEmail = config('helpdesk.ops_notify_email') ?: env('OPS_NOTIFY_EMAIL');
+        $opsEmail = config('helpdesk.ops_notify_email');
 
         if (blank($opsEmail)) {
             return;
