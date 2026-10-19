@@ -46,5 +46,9 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
+# Creates the first admin when HELPDESK_ADMIN_EMAIL/PASSWORD are set.
+# Non-fatal: a failure here must not stop the app from serving.
+php artisan helpdesk:create-admin || true
+
 echo "[entrypoint] ready"
 exec "$@"

@@ -26,6 +26,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Bootstrap admin
+    |--------------------------------------------------------------------------
+    |
+    | A fresh deployment has an empty users table and every useful route sits
+    | behind auth, so there is no way in. When both values are set, the
+    | container entrypoint runs `helpdesk:create-admin` to create (or repair)
+    | this account.
+    |
+    | Clear HELPDESK_ADMIN_PASSWORD once you have signed in and changed it -
+    | leaving a password in the environment is not where it should live.
+    |
+    */
+
+    'bootstrap_admin' => [
+        'email' => env('HELPDESK_ADMIN_EMAIL'),
+        'password' => env('HELPDESK_ADMIN_PASSWORD'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Subject tag prefix
     |--------------------------------------------------------------------------
     |
